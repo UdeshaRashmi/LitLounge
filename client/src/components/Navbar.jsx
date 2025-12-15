@@ -17,7 +17,7 @@ const Navbar = () => (
     <div className="flex space-x-4">
       {navLinks.map((link) => (
         <NavLink
-          key={link.path}
+          key={`${link.name}-${link.path}`}
           to={link.path}
           className={({ isActive }) =>
             `px-3 py-2 rounded-lg text-base font-medium transition ${

@@ -19,7 +19,7 @@ const Sidebar = () => (
     <nav className="flex flex-col p-4 space-y-2">
       {links.map(({ name, path, icon }) => (
         <NavLink
-          key={path}
+          key={`${name}-${path}`}
           to={path}
           className={({ isActive }) =>
             `flex items-center px-3 py-2 rounded-lg font-medium transition ${
