@@ -1,6 +1,11 @@
-import React from "react";
+ import React from "react";
 import { NavLink } from "react-router-dom";
-import { BookOpenIcon, PlusCircleIcon, HomeIcon, InformationCircleIcon } from "@heroicons/react/outline";
+import {
+  BookOpenIcon,
+  PlusCircleIcon,
+  HomeIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const links = [
   { name: "Home", path: "/", icon: <HomeIcon className="w-5 h-5 mr-2" /> },
