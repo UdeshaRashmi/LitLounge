@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 
 const navLinks = [
-  { name: "Home", path: "/" },
+ 
   { name: "About", path: "/about" },
   { name: "Services", path: "/services" },
   { name: "Blog", path: "/blog" },

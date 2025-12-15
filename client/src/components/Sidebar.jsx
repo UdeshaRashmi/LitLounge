@@ -1,5 +1,5 @@
- import React, { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation, useParams } from "react-router-dom";
 import {
   BookOpenIcon,
   PlusCircleIcon,
@@ -9,14 +9,13 @@ import {
   Cog6ToothIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
-  ChartBarIcon,
-  StarIcon,
+  DocumentTextIcon,
   BookmarkIcon,
 } from "@heroicons/react/24/outline";
 import {
   BookOpenIcon as BookOpenIconSolid,
   HomeIcon as HomeIconSolid,
-  StarIcon as StarIconSolid,
+  DocumentTextIcon as DocumentTextIconSolid,
 } from "@heroicons/react/24/solid";
 
 const Sidebar = () => {
@@ -24,6 +23,7 @@ const Sidebar = () => {
   const [activeHover, setActiveHover] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+  const params = useParams();
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -35,7 +35,7 @@ const Sidebar = () => {
 
   const navigationLinks = [
     {
-      name: "Dashboard",
+      name: "Home",
       path: "/",
       icon: collapsed ? (
         location.pathname === "/" ? (
@@ -55,35 +55,22 @@ const Sidebar = () => {
       name: "Book List",
       path: "/books",
       icon: collapsed ? (
-        location.pathname === "/books" ? (
+        location.pathname.startsWith("/books") && 
+        !location.pathname.includes("/books/add") && 
+        !location.pathname.match(/\/books\/\d+/) ? (
           <BookOpenIconSolid className="w-5 h-5" />
         ) : (
           <BookOpenIcon className="w-5 h-5" />
         )
-      ) : location.pathname === "/books" ? (
+      ) : location.pathname.startsWith("/books") && 
+         !location.pathname.includes("/books/add") && 
+         !location.pathname.match(/\/books\/\d+/) ? (
         <BookOpenIconSolid className="w-5 h-5 mr-3" />
       ) : (
         <BookOpenIcon className="w-5 h-5 mr-3" />
       ),
       description: "Browse all books",
       badge: "12",
-    },
-    {
-      name: "Favorites",
-      path: "/books/favorites",
-      icon: collapsed ? (
-        location.pathname === "/books/favorites" ? (
-          <StarIconSolid className="w-5 h-5" />
-        ) : (
-          <StarIcon className="w-5 h-5" />
-        )
-      ) : location.pathname === "/books/favorites" ? (
-        <StarIconSolid className="w-5 h-5 mr-3" />
-      ) : (
-        <StarIcon className="w-5 h-5 mr-3" />
-      ),
-      description: "Your favorite books",
-      badge: "5",
     },
     {
       name: "Add Book",
@@ -93,18 +80,28 @@ const Sidebar = () => {
       badge: null,
     },
     {
+      name: "Book Details",
+      path: `/books/${params.id || "1"}`,
+      icon: collapsed ? (
+        location.pathname.match(/\/books\/\d+/) ? (
+          <DocumentTextIconSolid className="w-5 h-5" />
+        ) : (
+          <DocumentTextIcon className="w-5 h-5" />
+        )
+      ) : location.pathname.match(/\/books\/\d+/) ? (
+        <DocumentTextIconSolid className="w-5 h-5 mr-3" />
+      ) : (
+        <DocumentTextIcon className="w-5 h-5 mr-3" />
+      ),
+      description: "View book details",
+      badge: null,
+    },
+    {
       name: "Reading List",
       path: "/books/reading-list",
       icon: <BookmarkIcon className={`w-5 h-5 ${collapsed ? "" : "mr-3"}`} />,
       description: "Books you plan to read",
       badge: "8",
-    },
-    {
-      name: "Statistics",
-      path: "/stats",
-      icon: <ChartBarIcon className={`w-5 h-5 ${collapsed ? "" : "mr-3"}`} />,
-      description: "Reading insights",
-      badge: null,
     },
   ];
 
@@ -136,7 +133,9 @@ const Sidebar = () => {
           {navigationLinks.slice(0, 4).map((link) => (
             <NavLink
               key={link.path}
-              to={link.path}
+              to={link.path === `/books/${params.id || "1"}` ? 
+                (params.id ? `/books/${params.id}` : "/books/1") : 
+                link.path}
               className={({ isActive }) =>
                 `flex flex-col items-center p-2 rounded-lg transition-all ${
                   isActive
@@ -146,7 +145,9 @@ const Sidebar = () => {
               }
             >
               <div className="relative">
-                {link.icon}
+                {React.cloneElement(link.icon, {
+                  className: `w-5 h-5 ${link.name === "Book Details" && params.id ? "text-indigo-600" : ""}`
+                })}
                 {link.badge && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                     {link.badge}
@@ -202,41 +203,66 @@ const Sidebar = () => {
 
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navigationLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              onMouseEnter={() => setActiveHover(link.name)}
-              onMouseLeave={() => setActiveHover(null)}
-              className={({ isActive }) =>
-                `flex items-center px-3 py-3 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold shadow-sm border border-indigo-100"
-                    : "text-gray-700 hover:bg-gray-50 hover:shadow-sm"
-                }`
-              }
-              end={link.path === "/"}
-            >
-              <div className="relative">
-                {link.icon}
-                {link.badge && !collapsed && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                    {link.badge}
-                  </span>
-                )}
-              </div>
-              {!collapsed && (
-                <div className="flex items-center justify-between flex-1">
-                  <span>{link.name}</span>
-                  {link.badge && (
-                    <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+          {navigationLinks.map((link) => {
+            // Special handling for Book Details link
+            const isBookDetails = link.name === "Book Details";
+            const currentBookId = params.id || "1";
+            const bookDetailsPath = `/books/${currentBookId}`;
+            
+            return (
+              <NavLink
+                key={link.path}
+                to={isBookDetails ? bookDetailsPath : link.path}
+                onMouseEnter={() => setActiveHover(link.name)}
+                onMouseLeave={() => setActiveHover(null)}
+                className={({ isActive }) => {
+                  // Special active check for Book Details
+                  const isBookDetailsActive = isBookDetails && 
+                    location.pathname.match(/\/books\/\d+/);
+                  
+                  const active = isBookDetails ? isBookDetailsActive : isActive;
+                  
+                  return `flex items-center px-3 py-3 rounded-xl transition-all duration-200 group ${
+                    active
+                      ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold shadow-sm border border-indigo-100"
+                      : "text-gray-700 hover:bg-gray-50 hover:shadow-sm"
+                  }`;
+                }}
+                end={link.path === "/"}
+              >
+                <div className="relative">
+                  {isBookDetails && params.id ? (
+                    // If we have a book ID, show the filled icon
+                    <DocumentTextIconSolid className={`w-5 h-5 ${collapsed ? "" : "mr-3"}`} />
+                  ) : (
+                    link.icon
+                  )}
+                  {link.badge && !collapsed && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                       {link.badge}
                     </span>
                   )}
                 </div>
-              )}
-            </NavLink>
-          ))}
+                {!collapsed && (
+                  <div className="flex items-center justify-between flex-1">
+                    <span>
+                      {link.name}
+                      {isBookDetails && params.id && (
+                        <span className="ml-2 text-xs text-gray-500 font-normal">
+                          (#{params.id})
+                        </span>
+                      )}
+                    </span>
+                    {link.badge && (
+                      <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                        {link.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Secondary Links */}
@@ -276,7 +302,7 @@ const Sidebar = () => {
                   <p className="text-sm font-medium text-gray-900 truncate">
                     John Smith
                   </p>
-                  <p className="text-xs text-gray-500 truncate">Reader</p>
+                  <p className="text-xs text-gray-500 truncate">Book Lover</p>
                 </div>
               </div>
             </div>
@@ -289,6 +315,7 @@ const Sidebar = () => {
         <div className="fixed left-16 ml-2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg z-50">
           {navigationLinks.find((l) => l.name === activeHover)?.description ||
             activeHover}
+          {activeHover === "Book Details" && params.id && ` (#${params.id})`}
         </div>
       )}
     </>
