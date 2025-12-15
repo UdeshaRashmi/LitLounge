@@ -8,7 +8,6 @@ import Contact from './pages/Contact';
 import BookList from './pages/Books/BookList';
 import BookDetails from './pages/Books/BookDetails';
 import AddBook from './pages/Books/AddBook';
-import EditBook from './pages/Books/EditBook';
 import NotFound from './pages/NotFound';
  
 
@@ -27,7 +26,7 @@ function App() {
               <Route path="/books" element={<BookList />} />
               <Route path="/books/add" element={<AddBook />} />
               <Route path="/books/:id" element={<BookDetails />} />
-              <Route path="/books/:id/edit" element={<EditBook />} />
+              <Route path="/books/:id/edit" element={<AddBook />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

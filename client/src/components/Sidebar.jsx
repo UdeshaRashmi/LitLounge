@@ -8,10 +8,9 @@ import {
 } from "@heroicons/react/24/outline";
 
 const links = [
-  
-  { name: "Books", path: "/books", icon: <BookOpenIcon className="w-5 h-5 mr-2" /> },
+  { name: "Book List", path: "/books", icon: <BookOpenIcon className="w-5 h-5 mr-2" /> },
   { name: "Add Book", path: "/books/add", icon: <PlusCircleIcon className="w-5 h-5 mr-2" /> },
-  
+  { name: "Book Details", path: "/books/1", icon: <BookOpenIcon className="w-5 h-5 mr-2" /> }, // You can update `/books/1` to the id you want
 ];
 
 const Sidebar = () => (
