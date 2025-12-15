@@ -1,29 +1,64 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getBookById } from '../../data/books';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getBookById, deleteBook } from '../../data/books';
 
 export default function BookDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const book = getBookById(id);
 
   if (!book) {
     return (
-      <section className="p-6">
-        <h1 className="text-2xl font-semibold">Book not found</h1>
-        <p className="mt-3 text-gray-600">We couldn't find that book.</p>
-        <Link to="/books" className="mt-3 inline-block text-indigo-600">Back to list</Link>
+      <section className="py-12 flex flex-col items-center px-4">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Book not found</h1>
+        <p className="mb-6 text-gray-600">We couldn't find that book.</p>
+        <Link
+          to="/books"
+          className="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+        >
+          &larr; Back to Book List
+        </Link>
       </section>
     );
   }
 
+  const handleDelete = () => {
+    if (window.confirm('Delete this book?')) {
+      deleteBook(book.id);
+      navigate('/books');
+    }
+  };
+
   return (
-    <section className="p-6">
-      <h1 className="text-2xl font-semibold">{book.title}</h1>
-      <p className="text-sm text-gray-600">{book.author} — {book.year}</p>
-      <p className="mt-4 text-gray-700">{book.summary}</p>
-      <div className="mt-4">
-        <Link to={`/books/${book.id}/edit`} className="text-indigo-600 mr-4">Edit</Link>
-        <Link to="/books" className="text-gray-600">Back to list</Link>
+    <section className="max-w-2xl mx-auto px-4 py-10">
+      <div className="bg-white shadow-lg border border-gray-100 rounded-xl p-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-indigo-700 mb-2">{book.title}</h1>
+        <div className="text-gray-600 mb-6">
+          <span className="font-medium">{book.author}</span>
+          {book.year && <span className="mx-1">•</span>}
+          {book.year && <span>{book.year}</span>}
+        </div>
+        <p className="text-gray-700 mb-8">{book.summary || <span className="italic text-gray-400">No summary provided.</span>}</p>
+        <div className="flex gap-4">
+          <Link
+            to={`/books/${book.id}/edit`}
+            className="px-5 py-2 bg-indigo-50 text-indigo-700 rounded shadow hover:bg-indigo-100 transition font-semibold"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={handleDelete}
+            className="px-5 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition font-semibold"
+          >
+            Delete
+          </button>
+          <Link
+            to="/books"
+            className="px-5 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition font-semibold"
+          >
+            &larr; Back
+          </Link>
+        </div>
       </div>
     </section>
   );
