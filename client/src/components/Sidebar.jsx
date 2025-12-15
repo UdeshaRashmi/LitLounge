@@ -8,10 +8,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 const links = [
-  { name: "Home", path: "/", icon: <HomeIcon className="w-5 h-5 mr-2" /> },
+  
   { name: "Books", path: "/books", icon: <BookOpenIcon className="w-5 h-5 mr-2" /> },
   { name: "Add Book", path: "/books/add", icon: <PlusCircleIcon className="w-5 h-5 mr-2" /> },
-  { name: "About", path: "/about", icon: <InformationCircleIcon className="w-5 h-5 mr-2" /> },
+  
 ];
 
 const Sidebar = () => (
