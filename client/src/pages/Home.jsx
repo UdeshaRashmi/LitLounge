@@ -77,7 +77,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-gray-900 overflow-hidden relative">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 text-gray-900 overflow-hidden relative">
       {/* Cozy floating elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {[...Array(12)].map((_, i) => (
@@ -100,19 +100,19 @@ const Home = () => {
         {/* Header (compact) */}
         <header className="flex justify-between items-center mb-8 md:mb-12">
           <div />
-          <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 md:px-6 py-2 rounded-full transition-all duration-300 hover:scale-105 shadow-lg text-sm md:text-base">
+          <button className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 md:px-6 py-2 rounded-full transition-all duration-300 hover:scale-105 shadow-lg text-sm md:text-base">
             Join Now
           </button>
         </header>
 
         {/* Hero Text */}
         <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center gap-2 md:gap-3 mb-4 md:mb-6 px-3 md:px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-full border border-amber-200 shadow-sm">
+          <div className="inline-flex items-center gap-2 md:gap-3 mb-4 md:mb-6 px-3 md:px-4 py-2 bg-linear-to-r from-amber-100 to-orange-100 rounded-full border border-amber-200 shadow-sm">
             <span className="text-amber-600">✨</span>
             <span className="text-amber-700 text-xs md:text-sm font-semibold">10,000+ Books Added This Month</span>
           </div>
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-amber-600 via-orange-500 to-amber-600 bg-clip-text text-transparent">
               Dive Into Worlds
             </span>
             <br />
@@ -122,7 +122,7 @@ const Home = () => {
             Join millions of readers exploring stories, sharing insights, and discovering their next favorite book in our cozy reading community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
-            <button className="group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 md:px-8 py-3 rounded-full text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3 w-full sm:w-auto justify-center">
+            <button className="group bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 md:px-8 py-3 rounded-full text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-lg flex items-center gap-3 w-full sm:w-auto justify-center">
               Start Reading Free
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
@@ -140,22 +140,22 @@ const Home = () => {
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-amber-300/20 blur-3xl rounded-full" />
             
             {/* Book container */}
-            <div className="relative bg-gradient-to-br from-amber-100 via-orange-50 to-amber-100 rounded-2xl shadow-2xl p-2 md:p-4 mx-auto" style={{ maxWidth: '800px' }}>
+            <div className="relative bg-linear-to-br from-amber-100 via-orange-50 to-amber-100 rounded-2xl shadow-2xl p-2 md:p-4 mx-auto" style={{ maxWidth: '800px' }}>
               {/* Decorative corner elements */}
               <div className="absolute -top-3 -left-3 text-2xl md:text-3xl opacity-70 animate-bounce-slow">🌟</div>
               <div className="absolute -top-3 -right-3 text-2xl md:text-3xl opacity-70 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>🦋</div>
               
               {/* Book pages container */}
               <div className="relative bg-white rounded-xl overflow-hidden shadow-inner">
-                <div className="flex min-h-[400px] md:min-h-[500px]">
+                <div className="flex min-h-100 md:min-h-125">
                   {/* Left Page */}
-                  <div className="w-1/2 relative bg-gradient-to-br from-amber-50 to-orange-50 p-4 md:p-8 border-r-2 border-amber-200">
+                  <div className="w-1/2 relative bg-linear-to-br from-amber-50 to-orange-50 p-4 md:p-8 border-r-2 border-amber-200">
                     {/* Paper texture */}
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(251, 191, 36, 0.1) 2px, rgba(251, 191, 36, 0.1) 4px)' }} />
                     
                     {/* Content */}
                     <div className="relative z-10 h-full flex flex-col">
-                      <div className={`inline-block self-start px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-gradient-to-r ${bookPages[currentPage].left.color} text-white text-xs font-bold mb-2 md:mb-4`}>
+                      <div className={`inline-block self-start px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-linear-to-r ${bookPages[currentPage].left.color} text-white text-xs font-bold mb-2 md:mb-4`}>
                         Chapter {currentPage * 2 + 1}
                       </div>
                       <h3 className="text-lg md:text-2xl font-bold text-gray-800 mb-2 md:mb-4">
@@ -184,13 +184,13 @@ const Home = () => {
                       className={`absolute inset-0 transition-all duration-600 ease-in-out ${isFlipping ? 'animate-page-flip' : ''}`}
                       style={{ transformOrigin: 'left center' }}
                     >
-                      <div className="relative bg-gradient-to-bl from-amber-50 to-orange-50 p-4 md:p-8 h-full">
+                      <div className="relative bg-linear-to-bl from-amber-50 to-orange-50 p-4 md:p-8 h-full">
                         {/* Paper texture */}
                         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(251, 191, 36, 0.1) 2px, rgba(251, 191, 36, 0.1) 4px)' }} />
                         
                         {/* Content */}
                         <div className="relative z-10 h-full flex flex-col">
-                          <div className={`inline-block self-start px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-gradient-to-r ${bookPages[currentPage].right.color} text-white text-xs font-bold mb-2 md:mb-4`}>
+                          <div className={`inline-block self-start px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-linear-to-r ${bookPages[currentPage].right.color} text-white text-xs font-bold mb-2 md:mb-4`}>
                             Chapter {currentPage * 2 + 2}
                           </div>
                           <h3 className="text-lg md:text-2xl font-bold text-gray-800 mb-2 md:mb-4">
@@ -217,7 +217,7 @@ const Home = () => {
                 </div>
 
                 {/* Book spine */}
-                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-gradient-to-b from-amber-300 via-orange-300 to-amber-300 shadow-md z-10" />
+                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-linear-to-b from-amber-300 via-orange-300 to-amber-300 shadow-md z-10" />
               </div>
 
               {/* Page depth effect */}
@@ -229,7 +229,7 @@ const Home = () => {
             <button
               onClick={prevPage}
               disabled={currentPage === 0 || isFlipping}
-              className={`absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 ${
+              className={`absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-20 bg-linear-to-r from-amber-500 to-orange-500 text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 ${
                 currentPage === 0 || isFlipping ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:shadow-xl active:scale-95'
               }`}
             >
@@ -238,7 +238,7 @@ const Home = () => {
             <button
               onClick={nextPage}
               disabled={currentPage === bookPages.length - 1 || isFlipping}
-              className={`absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 ${
+              className={`absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-20 bg-linear-to-r from-amber-500 to-orange-500 text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 ${
                 currentPage === bookPages.length - 1 || isFlipping ? 'opacity-30 cursor-not-allowed' : 'hover:scale-110 hover:shadow-xl active:scale-95'
               }`}
             >
@@ -274,7 +274,7 @@ const Home = () => {
               key={stat.label} 
               className="group bg-white/80 backdrop-blur-sm border border-amber-200 rounded-xl p-4 md:p-6 text-center hover:bg-white transition-all duration-300 hover:scale-105 shadow-sm hover:shadow-lg"
             >
-              <div className={`inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br ${stat.color} rounded-full mb-3 md:mb-4 group-hover:scale-110 transition-transform text-2xl md:text-3xl`}>
+              <div className={`inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-linear-to-br ${stat.color} rounded-full mb-3 md:mb-4 group-hover:scale-110 transition-transform text-2xl md:text-3xl`}>
                 {stat.icon}
               </div>
               <div className="text-xl md:text-2xl font-bold text-gray-800 mb-1">{stat.value}</div>
@@ -317,7 +317,7 @@ const Home = () => {
             ].map((feature) => (
               <div 
                 key={feature.title}
-                className={`group bg-gradient-to-br ${feature.color} border border-amber-200 rounded-xl p-5 md:p-6 hover:border-amber-300 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg`}
+                className={`group bg-linear-to-br ${feature.color} border border-amber-200 rounded-xl p-5 md:p-6 hover:border-amber-300 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg`}
               >
                 <div className="text-3xl md:text-4xl mb-3 md:mb-4 group-hover:scale-110 transition-transform inline-block">
                   {feature.emoji}
@@ -335,11 +335,11 @@ const Home = () => {
 
         {/* CTA Section */}
         <div className="text-center px-4">
-          <div className="bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 rounded-2xl p-6 md:p-10 border-2 border-amber-200 shadow-xl max-w-3xl mx-auto">
+          <div className="bg-linear-to-r from-amber-100 via-orange-100 to-amber-100 rounded-2xl p-6 md:p-10 border-2 border-amber-200 shadow-xl max-w-3xl mx-auto">
             <div className="text-4xl md:text-5xl mb-4">☕📖</div>
             <h3 className="text-xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Ready to start your reading journey?</h3>
             <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8">Join our community of passionate readers today and discover your next favorite book.</p>
-            <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 md:px-10 py-3 md:py-4 rounded-full text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+            <button className="bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 md:px-10 py-3 md:py-4 rounded-full text-base md:text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
               Get Started For Free
             </button>
           </div>

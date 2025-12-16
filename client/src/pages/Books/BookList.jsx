@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getBooks } from '../../data/books';
+import { getBooks, getReadingList, addToReadingList, removeFromReadingList, subscribeReadingList } from '../../data/books';
 
 export default function BookList() {
   const books = getBooks();
+  const [readingIds, setReadingIds] = useState(() => getReadingList().map((b) => b.id));
+
+  useEffect(() => {
+    const unsub = subscribeReadingList((list) => setReadingIds(list.map((b) => b.id)));
+    return unsub;
+  }, []);
+
+  const toggleReading = (bookId) => {
+    if (readingIds.includes(bookId)) {
+      removeFromReadingList(bookId);
+    } else {
+      addToReadingList(bookId);
+    }
+    // optimistic update; subscription will also update
+    setReadingIds(getReadingList().map((b) => b.id));
+  };
 
   return (
     <section className="max-w-5xl mx-auto px-4 py-10">
@@ -44,27 +60,37 @@ export default function BookList() {
                 </p>
               </div>
               <div className="pt-4 flex justify-between items-end">
-                <Link
-                  to={`/books/${book.id}`}
-                  className="inline-flex items-center text-indigo-600 font-semibold hover:underline group"
-                >
-                  View Details
-                  <svg
-                    className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/books/${book.id}`}
+                    className="inline-flex items-center text-indigo-600 font-semibold hover:underline group"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-                <Link
-                  to={`/books/${book.id}/edit`}
-                  className="inline-block px-3 py-1 text-xs bg-indigo-50 text-indigo-700 rounded hover:bg-indigo-100 transition"
-                >
-                  Edit
-                </Link>
+                    View Details
+                    <svg
+                      className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </Link>
+
+                  <button
+                    onClick={() => toggleReading(book.id)}
+                    className={`px-3 py-1 text-xs rounded transition font-semibold ${readingIds.includes(book.id) ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+                  >
+                    {readingIds.includes(book.id) ? 'In Reading' : 'Add to List'}
+                  </button>
+
+                  <Link
+                    to={`/books/${book.id}/edit`}
+                    className="inline-block px-3 py-1 text-xs bg-indigo-50 text-indigo-700 rounded hover:bg-indigo-100 transition"
+                  >
+                    Edit
+                  </Link>
+                </div>
               </div>
             </article>
           ))}

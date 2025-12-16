@@ -34,6 +34,7 @@ export function addBook(data) {
   const id = String(Date.now());
   const book = { id, ...data };
   books.push(book);
+  notifyBooksChange();
   return book;
 }
 
@@ -41,6 +42,7 @@ export function updateBook(id, data) {
   const idx = books.findIndex((b) => String(b.id) === String(id));
   if (idx === -1) return null;
   books[idx] = { ...books[idx], ...data };
+  notifyBooksChange();
   return books[idx];
 }
 
@@ -48,6 +50,7 @@ export function deleteBook(id) {
   const idx = books.findIndex((b) => String(b.id) === String(id));
   if (idx === -1) return false;
   books.splice(idx, 1);
+  notifyBooksChange();
   return true;
 }
 
@@ -61,6 +64,7 @@ export function getReadingList() {
 export function addToReadingList(bookId) {
   if (!readingList.includes(String(bookId))) {
     readingList.push(String(bookId));
+    notifyReadingListChange();
     return true;
   }
   return false;
@@ -70,5 +74,32 @@ export function removeFromReadingList(bookId) {
   const idx = readingList.findIndex((id) => String(id) === String(bookId));
   if (idx === -1) return false;
   readingList.splice(idx, 1);
+  notifyReadingListChange();
   return true;
+}
+
+// Simple pub/sub so components can react to changes
+const readingListSubscribers = new Set();
+const booksSubscribers = new Set();
+
+function notifyReadingListChange() {
+  readingListSubscribers.forEach((cb) => {
+    try { cb(getReadingList()); } catch (e) { /* ignore */ }
+  });
+}
+
+function notifyBooksChange() {
+  booksSubscribers.forEach((cb) => {
+    try { cb(getBooks()); } catch (e) { /* ignore */ }
+  });
+}
+
+export function subscribeReadingList(cb) {
+  readingListSubscribers.add(cb);
+  return () => readingListSubscribers.delete(cb);
+}
+
+export function subscribeBooks(cb) {
+  booksSubscribers.add(cb);
+  return () => booksSubscribers.delete(cb);
 }

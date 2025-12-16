@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getBookById, deleteBook } from '../../data/books';
+import { getBookById, deleteBook, getReadingList, addToReadingList, removeFromReadingList, subscribeReadingList } from '../../data/books';
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -22,8 +22,28 @@ export default function BookDetails() {
     );
   }
 
+  const [inReading, setInReading] = useState(() => !!getReadingList().find((b) => String(b.id) === String(book?.id)));
+
+  useEffect(() => {
+    const unsub = subscribeReadingList((list) => setInReading(list.some((b) => String(b.id) === String(book?.id))));
+    return unsub;
+  }, [book?.id]);
+
+  const handleToggleReading = () => {
+    if (!book) return;
+    if (inReading) {
+      removeFromReadingList(book.id);
+      setInReading(false);
+    } else {
+      addToReadingList(book.id);
+      setInReading(true);
+    }
+  };
+
   const handleDelete = () => {
     if (window.confirm('Delete this book?')) {
+      // Clean up reading list if present
+      try { removeFromReadingList(book.id); } catch (e) {}
       deleteBook(book.id);
       navigate('/books');
     }
@@ -46,12 +66,21 @@ export default function BookDetails() {
           >
             Edit
           </Link>
+
+          <button
+            onClick={handleToggleReading}
+            className={`px-5 py-2 rounded shadow transition font-semibold ${inReading ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}`}
+          >
+            {inReading ? 'In Reading' : 'Add to Reading List'}
+          </button>
+
           <button
             onClick={handleDelete}
             className="px-5 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition font-semibold"
           >
             Delete
           </button>
+
           <Link
             to="/books"
             className="px-5 py-2 border border-gray-300 bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition font-semibold"

@@ -17,13 +17,15 @@ import {
   HomeIcon as HomeIconSolid,
   DocumentTextIcon as DocumentTextIconSolid,
 } from "@heroicons/react/24/solid";
-import { getBooks, getReadingList } from '../data/books';
+import { getBooks, getReadingList, subscribeReadingList, subscribeBooks } from '../data/books';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeHover, setActiveHover] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [booksCount, setBooksCount] = useState(getBooks().length);
+  const [readingCount, setReadingCount] = useState(getReadingList().length);
   const location = useLocation();
   const params = useParams();
 
@@ -46,6 +48,16 @@ const Sidebar = () => {
       setQuoteIndex((i) => (i + 1) % quotes.length);
     }, 8000);
     return () => clearInterval(interval);
+  }, []);
+
+  // subscribe to book/reading list changes so badges update reactively
+  useEffect(() => {
+    const unsubBooks = subscribeBooks((list) => setBooksCount(list.length));
+    const unsubReading = subscribeReadingList((list) => setReadingCount(list.length));
+    return () => {
+      unsubBooks && unsubBooks();
+      unsubReading && unsubReading();
+    };
   }, []);
 
   const navigationLinks = [
@@ -85,7 +97,7 @@ const Sidebar = () => {
         <BookOpenIcon className="w-5 h-5 mr-3" />
       ),
       description: "Browse all books",
-      badge: String(getBooks().length),
+      badge: String(booksCount),
     },
     {
       name: "Add Book",
@@ -113,10 +125,10 @@ const Sidebar = () => {
     },
     {
       name: "Reading List",
-      path: "/books/reading-list",
+      path: "/reading-list",
       icon: <BookmarkIcon className={`w-5 h-5 ${collapsed ? "" : "mr-3"}`} />,
       description: "Books you plan to read",
-      badge: String(getReadingList().length),
+      badge: String(readingCount),
     },
   ];
 
