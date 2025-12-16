@@ -50,3 +50,25 @@ export function deleteBook(id) {
   books.splice(idx, 1);
   return true;
 }
+
+// Simple in-memory reading list (stores book ids)
+export const readingList = [];
+
+export function getReadingList() {
+  return readingList.map((id) => getBookById(id)).filter(Boolean);
+}
+
+export function addToReadingList(bookId) {
+  if (!readingList.includes(String(bookId))) {
+    readingList.push(String(bookId));
+    return true;
+  }
+  return false;
+}
+
+export function removeFromReadingList(bookId) {
+  const idx = readingList.findIndex((id) => String(id) === String(bookId));
+  if (idx === -1) return false;
+  readingList.splice(idx, 1);
+  return true;
+}

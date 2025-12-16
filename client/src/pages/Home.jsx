@@ -97,22 +97,9 @@ const Home = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 md:py-12">
-        {/* Header */}
+        {/* Header (compact) */}
         <header className="flex justify-between items-center mb-8 md:mb-12">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">📖</span>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-              LitLounge
-            </h1>
-          </div>
-          <nav className="hidden md:flex gap-8">
-            {['Discover', 'Community', 'Library', 'Reviews'].map((item) => (
-              <button key={item} className="text-gray-600 hover:text-amber-600 transition-colors duration-300 relative group">
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-500 group-hover:w-full transition-all duration-300"></span>
-              </button>
-            ))}
-          </nav>
+          <div />
           <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 md:px-6 py-2 rounded-full transition-all duration-300 hover:scale-105 shadow-lg text-sm md:text-base">
             Join Now
           </button>

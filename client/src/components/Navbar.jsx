@@ -5,8 +5,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
 const navLinks = [
  
   { name: "About", path: "/about" },
-  { name: "Services", path: "/services" },
-  { name: "Blog", path: "/blog" },
+  
   { name: "Contact", path: "/contact" },
 ];
 
@@ -115,12 +114,10 @@ const Navbar = () => {
             aria-label="LitLounge - Home"
             onClick={() => setMobileOpen(false)}
           >
-            <div className="h-8 w-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-3xl">📖</span>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
               LitLounge
-            </span>
+            </h1>
           </Link>
 
           {/* Desktop Navigation */}

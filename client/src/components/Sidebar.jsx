@@ -17,11 +17,13 @@ import {
   HomeIcon as HomeIconSolid,
   DocumentTextIcon as DocumentTextIconSolid,
 } from "@heroicons/react/24/solid";
+import { getBooks, getReadingList } from '../data/books';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeHover, setActiveHover] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [quoteIndex, setQuoteIndex] = useState(0);
   const location = useLocation();
   const params = useParams();
 
@@ -31,6 +33,19 @@ const Sidebar = () => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Rotate a short list of book quotes in the header
+  useEffect(() => {
+    const quotes = [
+      { text: 'A room without books is like a body without a soul.', author: '— Cicero' },
+      { text: 'So many books, so little time.', author: '— Frank Zappa' },
+      { text: "There is no friend as loyal as a book.", author: '— Ernest Hemingway' },
+    ];
+    const interval = setInterval(() => {
+      setQuoteIndex((i) => (i + 1) % quotes.length);
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const navigationLinks = [
@@ -70,7 +85,7 @@ const Sidebar = () => {
         <BookOpenIcon className="w-5 h-5 mr-3" />
       ),
       description: "Browse all books",
-      badge: "12",
+      badge: String(getBooks().length),
     },
     {
       name: "Add Book",
@@ -101,7 +116,7 @@ const Sidebar = () => {
       path: "/books/reading-list",
       icon: <BookmarkIcon className={`w-5 h-5 ${collapsed ? "" : "mr-3"}`} />,
       description: "Books you plan to read",
-      badge: "8",
+      badge: String(getReadingList().length),
     },
   ];
 
@@ -172,13 +187,21 @@ const Sidebar = () => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           {!collapsed && (
-            <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <BookOpenIconSolid className="w-5 h-5 text-white" />
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BookOpenIconSolid className="w-5 h-5 text-white" />
+                </div>
+                <div className="max-w-[12rem]">
+                  <p className="text-sm text-gray-700 italic leading-snug" title="Book quote">
+                    {[
+                      'A room without books is like a body without a soul.',
+                      'So many books, so little time.',
+                      'There is no friend as loyal as a book.'
+                    ][quoteIndex]}
+                  </p>
+                </div>
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
-                BookWise
-              </h1>
             </div>
           )}
           {collapsed && (
