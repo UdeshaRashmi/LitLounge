@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Moon, 
   Sun, 
@@ -14,11 +14,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+import { useTheme } from '../context/ThemeContext';
+
 const Settings = () => {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved || 'light';
-  });
+  const { theme, toggleTheme } = useTheme();
 
   const [formData, setFormData] = useState({
     name: 'Alex Johnson',
@@ -40,15 +39,10 @@ const Settings = () => {
   const [isSent, setIsSent] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
 
-  // Toggle dark/light mode
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(newTheme);
-    localStorage.setItem('theme', newTheme);
-    setFormData(prev => ({ ...prev, darkMode: newTheme === 'dark' }));
-  };
+  // Keep formData.darkMode in sync with ThemeContext
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, darkMode: theme === 'dark' }));
+  }, [theme]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
