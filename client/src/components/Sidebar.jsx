@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import {
-  BookOpenIcon,
-  PlusCircleIcon,
-  HomeIcon,
-  InformationCircleIcon,
-  UserCircleIcon,
-  Cog6ToothIcon,
-  ChevronDoubleLeftIcon,
-  ChevronDoubleRightIcon,
-  DocumentTextIcon,
-  BookmarkIcon,
-} from "@heroicons/react/24/outline";
-import {
-  BookOpenIcon as BookOpenIconSolid,
-  HomeIcon as HomeIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
-} from "@heroicons/react/24/solid";
+import BookOpenIcon from '@mui/icons-material/MenuBookOutlined';
+import BookOpenIconSolid from '@mui/icons-material/MenuBook';
+import PlusCircleIcon from '@mui/icons-material/AddCircleOutline';
+import HomeIcon from '@mui/icons-material/HomeOutlined';
+import HomeIconSolid from '@mui/icons-material/Home';
+import InformationCircleIcon from '@mui/icons-material/InfoOutlined';
+import UserCircleIcon from '@mui/icons-material/AccountCircle';
+import Cog6ToothIcon from '@mui/icons-material/Settings';
+import ChevronDoubleLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronDoubleRightIcon from '@mui/icons-material/ChevronRight';
+import DocumentTextIcon from '@mui/icons-material/DescriptionOutlined';
+import DocumentTextIconSolid from '@mui/icons-material/Description';
+import BookmarkIcon from '@mui/icons-material/BookmarkBorder';
 import { getBooks, getReadingList, subscribeReadingList, subscribeBooks } from '../data/books';
 
+import { useTheme } from "../context/ThemeContext";
+
 const Sidebar = () => {
+  const { theme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [activeHover, setActiveHover] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -347,9 +346,12 @@ const Sidebar = () => {
 
       {/* Tooltip for collapsed items */}
       {collapsed && activeHover && (
-        <div className="fixed left-16 ml-2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg z-50">
-          {navigationLinks.find((l) => l.name === activeHover)?.description ||
-            activeHover}
+        <div
+          className={`fixed left-16 ml-2 text-sm px-3 py-2 rounded-lg shadow-lg z-50 ${
+            theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900 border border-gray-200"
+          }`}
+        >
+          {navigationLinks.find((l) => l.name === activeHover)?.description || activeHover}
           {activeHover === "Book Details" && params.id && ` (#${params.id})`}
         </div>
       )}

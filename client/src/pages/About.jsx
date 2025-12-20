@@ -1,5 +1,11 @@
 import React from 'react';
-import { BookOpenIcon, UsersIcon, HeartIcon, GlobeAltIcon, TrophyIcon, StarIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
+import BookOpenIcon from '@mui/icons-material/MenuBook';
+import UsersIcon from '@mui/icons-material/Group';
+import HeartIcon from '@mui/icons-material/Favorite';
+import GlobeAltIcon from '@mui/icons-material/Public';
+import TrophyIcon from '@mui/icons-material/EmojiEvents';
+import StarIcon from '@mui/icons-material/Star';
+import ArrowTrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 export default function About() {
   const teamMembers = [
@@ -35,7 +41,7 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-20">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>

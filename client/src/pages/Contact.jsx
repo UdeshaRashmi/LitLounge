@@ -1,4 +1,5 @@
  import React, { useState, useMemo, useCallback } from 'react';
+ import { useTheme } from '../context/ThemeContext';
 import { Send, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 
 // Extract reusable components
@@ -296,6 +297,8 @@ function Contact() {
       handleSubmit();
     }
   }, [handleSubmit]);
+
+  const { theme } = useTheme();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">

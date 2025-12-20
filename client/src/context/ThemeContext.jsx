@@ -3,38 +3,32 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  // Only honor a previously saved theme if the user explicitly set it.
-  // This ensures dark mode is active only when the user toggles the button.
-  const [theme, setTheme] = useState(() => {
+  // Dark mode removed: always use light theme.
+  const [theme] = useState('light');
+
+  useEffect(() => {
+    // Always reflect current theme on the document element.
+    // When switching to dark, add the 'dark' class and remove any legacy
+    // 'darkmode' token. When switching to light, ensure both are removed.
+    // Ensure no dark classes remain anywhere in the document.
     try {
-      const wasSet = localStorage.getItem('litlounge-theme-set');
-      if (wasSet === '1') {
-        return localStorage.getItem('litlounge-theme') || 'light';
-      }
+      const root = document.documentElement;
+      const body = document.body;
+      root.classList.remove('dark', 'darkmode');
+      body.classList.remove('dark', 'darkmode');
+      const elems = document.querySelectorAll('.dark, .darkmode');
+      elems.forEach((el) => {
+        el.classList.remove('dark');
+        el.classList.remove('darkmode');
+      });
     } catch (e) {
       // ignore
     }
-    return 'light';
-  });
-
-  useEffect(() => {
-    // Always reflect current theme on the document element
-    document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((t) => {
-      const next = t === 'light' ? 'dark' : 'light';
-      try {
-        // Persist the user's explicit choice and mark that they set it.
-        localStorage.setItem('litlounge-theme', next);
-        localStorage.setItem('litlounge-theme-set', '1');
-      } catch (e) {
-        // ignore
-      }
-      return next;
-    });
-  };
+  // No-op toggle to preserve API shape for consumers.
+  const setTheme = () => {};
+  const toggleTheme = () => {};
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>

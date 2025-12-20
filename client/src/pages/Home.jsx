@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const Home = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -75,6 +76,8 @@ const Home = () => {
       }, 600);
     }
   };
+
+  const { theme } = useTheme();
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-rose-50 text-gray-900 overflow-hidden relative">
