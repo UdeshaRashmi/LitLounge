@@ -1,11 +1,14 @@
  import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import BookList from './pages/Books/BookList';
 import BookDetails from './pages/Books/BookDetails';
 import AddBook from './pages/Books/AddBook';
@@ -17,17 +20,21 @@ import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 transition-colors duration-300">
-          <Navbar />
-          <div className="flex flex-1">
-            <Sidebar />
-            <main className="flex-1 p-4 md:p-6 lg:p-8 bg-amber-50">
-              <Routes>
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 transition-colors duration-300">
+            <Navbar />
+            <div className="flex flex-1">
+              {/* Sidebar should appear only when authenticated */}
+              <AuthSidebarWrapper />
+              <main className="flex-1 p-4 md:p-6 lg:p-8 bg-amber-50">
+                <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/books" element={<BookList />} />
                 <Route path="/create" element={<Create />} />
                 <Route path="/reading-list" element={<ReadingList />} />
@@ -44,7 +51,14 @@ function App() {
         </div>
       </Router>
     </ThemeProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
+
+// Small wrapper that renders Sidebar only when authenticated
+function AuthSidebarWrapper() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Sidebar /> : <div className="w-0 md:w-0" />;
+}

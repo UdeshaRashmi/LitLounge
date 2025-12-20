@@ -1,5 +1,6 @@
- import React, { useState, useEffect, useRef } from "react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 import Bars3Icon from '@mui/icons-material/Menu';
 import XMarkIcon from '@mui/icons-material/Close';
 
@@ -97,6 +98,20 @@ const Navbar = () => {
     }
   };
 
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+  const handleGetStarted = () => {
+    const isRegistered = localStorage.getItem('registered') === 'true';
+    if (isRegistered) navigate('/login');
+    else navigate('/register');
+  };
+
+  const handleLogout = () => {
+    auth.logout();
+    navigate('/');
+  };
+
   return (
     <nav
       ref={navRef}
@@ -146,9 +161,25 @@ const Navbar = () => {
                 )}
               </NavLink>
             ))}
-            <button className="ml-4 px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
-              Get Started
-            </button>
+            {!auth.isAuthenticated ? (
+              <button
+                onClick={handleGetStarted}
+                className="ml-4 px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                aria-label="Get started"
+                type="button"
+              >
+                Get Started
+              </button>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:shadow-lg transition-all duration-300"
+                aria-label="Logout"
+                type="button"
+              >
+                Logout
+              </button>
+            )}
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -229,9 +260,25 @@ const Navbar = () => {
                 </nav>
 
                 <div className="px-6 pt-8 border-t border-gray-100">
-                  <button className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300">
-                    Get Started
-                  </button>
+                  {!auth.isAuthenticated ? (
+                    <button
+                      onClick={() => { setMobileOpen(false); handleGetStarted(); }}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300"
+                      aria-label="Get started"
+                      type="button"
+                    >
+                      Get Started
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { setMobileOpen(false); handleLogout(); }}
+                      className="w-full px-6 py-3 bg-red-500 text-white font-medium rounded-xl hover:shadow-lg transition-all duration-300"
+                      aria-label="Logout"
+                      type="button"
+                    >
+                      Logout
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

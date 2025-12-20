@@ -21,8 +21,9 @@ const ContactMethodCard = ({ method }) => (
     </div>
     
     <div className="p-5 md:p-6">
-      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-        {method.title}
+      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <span className="material-icons text-amber-600 text-lg md:text-xl" aria-hidden="true">{method.icon}</span>
+        <span>{method.title}</span>
       </h3>
       <p className="text-gray-700 font-medium mb-1 text-sm md:text-base">{method.details}</p>
       <p className="text-xs md:text-sm text-gray-500">{method.description}</p>
@@ -100,6 +101,7 @@ function Contact() {
   const contactMethods = useMemo(() => [
     {
       image: 'https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=400&q=80',
+      icon: 'email',
       title: 'Email Us',
       details: 'contact@litlounge.com',
       description: 'We typically reply within 4 hours',
@@ -108,6 +110,7 @@ function Contact() {
     },
     {
       image: 'https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=400&q=80',
+      icon: 'chat',
       title: 'Live Chat',
       details: 'Available 24/7',
       description: 'Chat with our support team',
@@ -116,6 +119,7 @@ function Contact() {
     },
     {
       image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&q=80',
+      icon: 'call',
       title: 'Call Us',
       details: '+1 (555) 123-4567',
       description: 'Mon-Fri, 9AM-6PM EST',
@@ -124,6 +128,7 @@ function Contact() {
     },
     {
       image: 'https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=400&q=80',
+      icon: 'place',
       title: 'Visit Us',
       details: '123 Book Street, NY',
       description: 'Come say hello in person',
@@ -304,23 +309,21 @@ function Contact() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden py-16 md:py-24">
-        {/* Hero Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=80" 
-            alt="Cozy library interior with bookshelves" 
-            loading="eager"
-            className="w-full h-full object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-50/90 via-orange-50/90 to-rose-50/90"></div>
+        {/* Hero Background Image (full-cover background with overlay) */}
+        <div
+          className="absolute inset-0 z-0 bg-fixed bg-center bg-cover"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=80')" }}
+          aria-hidden="true"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-50/80 via-orange-50/80 to-rose-50/80"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-3xl mb-6 md:mb-8 shadow-2xl overflow-hidden animate-bounce-slow border-4 border-white">
-              <img 
-                src="https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=200&q=80" 
-                alt="Chat illustration" 
+            <div className="inline-flex items-center justify-center w-28 h-28 md:w-32 md:h-32 rounded-3xl mb-6 md:mb-8 shadow-2xl overflow-hidden animate-bounce-slow border-4 border-white">
+              <img
+                src="data:image/jpeg;base64,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"
+                alt="Contact small"
                 loading="eager"
                 className="w-full h-full object-cover"
               />
