@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, X, BookOpen, Sparkles, Image } from 'lucide-react';
+import { Upload, X, BookOpen, Sparkles, Image, AlertCircle } from 'lucide-react';
+import { capitalizeWords } from '../../utils/validation';
 
 // Floating particles component
 function FloatingParticles() {
@@ -61,6 +62,7 @@ export default function AddBook() {
   const [books, setBooks] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [currentBookId, setCurrentBookId] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // Load books from memory
   useEffect(() => {
@@ -71,6 +73,30 @@ export default function AddBook() {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+  }
+
+  function handleTitleBlur() {
+    setForm(f => ({ ...f, title: capitalizeWords(f.title || '') }));
+  }
+
+  function handleAuthorBlur() {
+    setForm(f => ({ ...f, author: capitalizeWords(f.author || '') }));
+  }
+
+  function validateForm() {
+    const newErrors = {};
+    if (!form.title || !form.title.trim()) newErrors.title = 'Title is required';
+    if (!form.author || !form.author.trim()) newErrors.author = 'Author is required';
+    if (form.year) {
+      const yearNum = Number(form.year);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(yearNum) || yearNum < 0) newErrors.year = 'Enter a valid year';
+      else if (yearNum > currentYear) newErrors.year = 'Publication year cannot be in the future';
+    }
+    if (form.summary && form.summary.length > 2000) newErrors.summary = 'Summary must be under 2000 characters';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
   function handlePhotoChange(e) {
@@ -124,6 +150,7 @@ export default function AddBook() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
     
     const payload = { 
@@ -149,6 +176,7 @@ export default function AddBook() {
       
       // Reset form
       setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
+      setErrors({});
       setIsEdit(false);
       setCurrentBookId(null);
       setLoading(false);
@@ -282,11 +310,18 @@ export default function AddBook() {
                 name="title"
                 value={form.title}
                 onChange={handleChange}
+                onBlur={handleTitleBlur}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 required
                 placeholder="E.g. Atomic Habits"
                 disabled={loading}
               />
+              {errors.title && (
+                <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.title}</span>
+                </div>
+              )}
             </div>
 
             {/* Author Field */}
@@ -298,11 +333,18 @@ export default function AddBook() {
                 name="author"
                 value={form.author}
                 onChange={handleChange}
+                onBlur={handleAuthorBlur}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 required
                 placeholder="E.g. James Clear"
                 disabled={loading}
               />
+              {errors.author && (
+                <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.author}</span>
+                </div>
+              )}
             </div>
 
             {/* Year Field */}
@@ -320,6 +362,12 @@ export default function AddBook() {
                 placeholder="E.g. 2023"
                 disabled={loading}
               />
+              {errors.year && (
+                <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.year}</span>
+                </div>
+              )}
             </div>
 
             {/* Summary Field */}
@@ -336,6 +384,12 @@ export default function AddBook() {
                 placeholder="Brief description of the book..."
                 disabled={loading}
               />
+              {errors.summary && (
+                <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.summary}</span>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}

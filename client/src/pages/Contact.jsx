@@ -1,6 +1,7 @@
  import React, { useState, useMemo, useCallback } from 'react';
  import { useTheme } from '../context/ThemeContext';
 import { Send, Loader, CheckCircle, AlertCircle } from 'lucide-react';
+import { capitalizeWords, isValidEmail } from '../utils/validation';
 
 // Extract reusable components
 const ContactMethodCard = ({ method }) => (
@@ -193,7 +194,7 @@ function Contact() {
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!isValidEmail(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
     
@@ -270,6 +271,14 @@ function Contact() {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
   }, [errors]);
+
+  const handleNameBlur = useCallback(() => {
+    setFormData(prev => ({ ...prev, name: capitalizeWords(prev.name || '') }));
+  }, []);
+
+  const handleSubjectBlur = useCallback(() => {
+    setFormData(prev => ({ ...prev, subject: capitalizeWords(prev.subject || '') }));
+  }, []);
 
   // Load saved form data from localStorage on mount
   React.useEffect(() => {
@@ -441,6 +450,7 @@ function Contact() {
                           type="text"
                           value={formData.name}
                           onChange={(e) => handleChange('name', e.target.value)}
+                          onBlur={handleNameBlur}
                           className={`w-full px-4 py-3 border-2 ${errors.name ? 'border-red-300' : 'border-amber-100'} rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all duration-300 bg-amber-50/30 focus:bg-white`}
                           placeholder="John Doe"
                           aria-required="true"
@@ -533,6 +543,7 @@ function Contact() {
                         type="text"
                         value={formData.subject}
                         onChange={(e) => handleChange('subject', e.target.value)}
+                        onBlur={handleSubjectBlur}
                         className="w-full px-4 py-3 border-2 border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all duration-300 bg-amber-50/30 focus:bg-white"
                         placeholder="How can we help you?"
                       />
