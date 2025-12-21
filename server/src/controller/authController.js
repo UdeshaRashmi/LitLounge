@@ -3,24 +3,28 @@ import generateToken from "../utils/generateToken.js";
 
 // Register
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = req.body || {};
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Please provide name, email and password" });
+  }
 
   const userExists = await User.findOne({ email });
   if (userExists) {
-    res.status(400);
-    throw new Error("User already exists");
+    return res.status(400).json({ message: "User already exists" });
   }
 
   const user = await User.create({ name, email, password });
 
   if (user) {
-    res.status(201).json({
+    return res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
   }
+  return res.status(400).json({ message: "Invalid user data" });
 };
 
 // Login
@@ -36,8 +40,7 @@ const loginUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } else {
-    res.status(401);
-    throw new Error("Invalid email or password");
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 };
 

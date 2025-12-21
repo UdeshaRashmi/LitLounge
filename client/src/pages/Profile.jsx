@@ -187,12 +187,12 @@ export default function Profile() {
       
       {/* Success Message */}
       {successMessage && (
-                  {errors.name && (
-                    <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-                      <AlertCircle className="w-4 h-4" />
-                      <span>{errors.name}</span>
-                    </div>
-                  )}
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>{successMessage}</span>
+          </div>
+        </div>
       )}
 
       <div className="relative z-10 max-w-6xl mx-auto p-4 py-8">
@@ -247,12 +247,6 @@ export default function Profile() {
                       Cancel
                     </button>
                     <button
-                    {errors.phone && (
-                      <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{errors.phone}</span>
-                      </div>
-                    )}
                       onClick={handleSaveProfile}
                       disabled={isUpdating}
                       className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all font-semibold disabled:opacity-50 flex items-center gap-2"
@@ -279,15 +273,9 @@ export default function Profile() {
                   <div className="relative group">
                     <div className="w-32 h-32 rounded-full border-4 border-blue-500/30 overflow-hidden">
                       {photoPreview ? (
-                        <img 
-                        {errors.birthDate && (
-                          <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-                            <AlertCircle className="w-4 h-4" />
-                            <span>{errors.birthDate}</span>
-                          </div>
-                        )}
-                          src={photoPreview} 
-                          alt="Profile" 
+                        <img
+                          src={photoPreview}
+                          alt="Profile"
                           className="w-full h-full object-cover"
                         />
                       ) : (
