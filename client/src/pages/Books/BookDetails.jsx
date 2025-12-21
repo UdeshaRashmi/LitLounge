@@ -1,4 +1,5 @@
- import React, { useState } from 'react';
+ import React, { useState, useEffect } from 'react';
+ import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Edit, Trash2, ArrowLeft, BookmarkPlus, BookmarkCheck, Calendar, User, Sparkles, Heart, Share2 } from 'lucide-react';
 
 // Floating particles component
@@ -48,20 +49,38 @@ function FloatingParticles() {
 }
 
 export default function BookDetails() {
-  // Demo book data - in real app this would come from props/routing
-  const [book] = useState({
-    id: '1',
-    title: 'Atomic Habits',
-    author: 'James Clear',
-    year: '2018',
-    summary: 'An Easy & Proven Way to Build Good Habits & Break Bad Ones. Atomic Habits will reshape the way you think about progress and success, and give you the tools and strategies you need to transform your habits. James Clear, one of the world\'s leading experts on habit formation, reveals practical strategies that will teach you exactly how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results.',
-    photo: null
-  });
-
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [inReading, setInReading] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await (await import('../../utils/api')).authFetch('http://localhost:5000/api/books');
+        if (!mounted) return;
+        if (res.ok) {
+          const found = (res.data || []).find(b => b._id === id || b.id === id);
+          setBook(found || null);
+        } else {
+          setBook(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setBook(null);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [id]);
+
+  
 
   const handleToggleReading = () => {
     setInReading(!inReading);
@@ -76,10 +95,20 @@ export default function BookDetails() {
   };
 
   const confirmDelete = () => {
-    setDeleted(true);
-    setTimeout(() => {
-      alert('Book deleted! In a real app, you would navigate back to the book list.');
-    }, 500);
+    (async () => {
+      try {
+        const res = await (await import('../../utils/api')).authFetch(`http://localhost:5000/api/books/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          setDeleted(true);
+          setTimeout(() => navigate('/books'), 500);
+        } else {
+          alert(res.data?.message || 'Failed to delete');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error deleting book');
+      }
+    })();
   };
 
   const handleShare = () => {
@@ -93,6 +122,10 @@ export default function BookDetails() {
   const handleBack = () => {
     alert('Back functionality! In a real app, this would navigate to the book list.');
   };
+
+  if (loading) {
+    return <div className="p-8">Loading...</div>;
+  }
 
   if (deleted) {
     return (
@@ -114,6 +147,12 @@ export default function BookDetails() {
           </button>
         </div>
       </div>
+    );
+  }
+
+  if (!book) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">No book found.</div>
     );
   }
 

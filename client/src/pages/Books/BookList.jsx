@@ -1,6 +1,6 @@
- import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getBooks, getReadingList, addToReadingList, removeFromReadingList, subscribeReadingList } from '../../data/books';
+import { authFetch } from '../../utils/api';
 import { BookOpen, BookmarkPlus, BookmarkCheck, Plus, Search, Filter, Sparkles, Bookmark, Star, ChevronRight } from 'lucide-react';
 
 // Floating books component
@@ -194,8 +194,8 @@ function BookCard({ book, isInReadingList, onToggleReading }) {
 }
 
 export default function BookList() {
-  const books = getBooks();
-  const [readingIds, setReadingIds] = useState(() => getReadingList().map((b) => b.id));
+  const [books, setBooks] = useState([]);
+  const [readingIds, setReadingIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [stats, setStats] = useState({
@@ -205,8 +205,13 @@ export default function BookList() {
   });
 
   useEffect(() => {
-    const unsub = subscribeReadingList((list) => setReadingIds(list.map((b) => b.id)));
-    return unsub;
+    // load books from backend
+    let mounted = true;
+    (async () => {
+      const res = await authFetch('http://localhost:5000/api/books');
+      if (mounted && res.ok) setBooks(res.data || []);
+    })();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -218,13 +223,8 @@ export default function BookList() {
   }, [books, readingIds]);
 
   const toggleReading = (bookId) => {
-    if (readingIds.includes(bookId)) {
-      removeFromReadingList(bookId);
-    } else {
-      addToReadingList(bookId);
-    }
-    // Optimistic update
-    setReadingIds(getReadingList().map((b) => b.id));
+    // local toggle for reading list (client-side feature)
+    setReadingIds(prev => prev.includes(bookId) ? prev.filter(id => id !== bookId) : [...prev, bookId]);
   };
 
   const filteredBooks = books.filter(book => {

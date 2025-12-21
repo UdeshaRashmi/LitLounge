@@ -13,6 +13,12 @@ const bookSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    year: {
+      type: Number,
+    },
+    photo: {
+      type: String,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

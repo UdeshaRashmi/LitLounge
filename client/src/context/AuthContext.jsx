@@ -44,6 +44,13 @@ export function AuthProvider({ children }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('token') || null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   // Persist auth state to localStorage
   useEffect(() => {
@@ -51,9 +58,11 @@ export function AuthProvider({ children }) {
       if (isAuthenticated) {
         localStorage.setItem('authenticated', 'true');
         localStorage.setItem('userData', JSON.stringify(user));
+        if (token) localStorage.setItem('token', token);
       } else {
         localStorage.removeItem('authenticated');
         localStorage.removeItem('userData');
+        localStorage.removeItem('token');
       }
     } catch (e) {
       console.error('Error saving auth state to localStorage:', e);
@@ -89,33 +98,26 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     setLoading(true);
     setError(null);
-
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const registered = localStorage.getItem('registered') === 'true';
-      const storedEmail = localStorage.getItem('userEmail') || '';
-
-      if (!registered) {
-        throw new Error('No account found. Please register first.');
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed');
       }
-
-      if (storedEmail !== email) {
-        throw new Error('Email not recognized. Please use your registered email.');
-      }
-
-      // For demo, any password works
-      // In real app, you'd verify password here
-      
+      // store token and user
+      setToken(data.token || null);
       setIsAuthenticated(true);
-      
-      // Update user with last login
       setUser(prev => ({
         ...prev,
-        lastLogin: new Date().toISOString()
+        id: data._id,
+        name: data.name,
+        email: data.email,
+        lastLogin: new Date().toISOString(),
       }));
-
       return { success: true };
     } catch (err) {
       setError(err.message);
@@ -129,41 +131,29 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (userData) => {
     setLoading(true);
     setError(null);
-
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Store registration data
-      localStorage.setItem('registered', 'true');
-      localStorage.setItem('userEmail', userData.email);
-      if (userData.name) localStorage.setItem('userName', userData.name);
-      if (userData.photoPreview) localStorage.setItem('userPhoto', userData.photoPreview);
-
-      // Set user data
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: userData.name, email: userData.email, password: userData.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+      // persist token and user
+      setToken(data.token || null);
+      setIsAuthenticated(true);
       const newUser = {
         ...initialUserData,
-        id: `user_${Date.now()}`,
-        name: userData.name,
-        email: userData.email,
-        photo: userData.photoPreview,
-        country: userData.country,
-        phone: userData.phone,
-        birthDate: userData.birthDate,
+        id: data._id,
+        name: data.name,
+        email: data.email,
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        preferences: {
-          ...initialUserData.preferences,
-          newsletter: userData.newsletter || false
-        }
       };
-
       setUser(newUser);
-
-      // Auto login after registration
-      setIsAuthenticated(true);
-      
-      return { success: true, user: newUser };
+      return { success: true, user: data };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
@@ -177,7 +167,7 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
     setUser(initialUserData);
     setError(null);
-    
+    setToken(null);
     // Keep registration data but remove auth
     try {
       localStorage.removeItem('authenticated');
@@ -265,6 +255,7 @@ export function AuthProvider({ children }) {
   const contextValue = useMemo(() => ({
     isAuthenticated,
     user,
+    token,
     loading,
     error,
     login,
@@ -277,6 +268,7 @@ export function AuthProvider({ children }) {
   }), [
     isAuthenticated,
     user,
+    token,
     loading,
     error,
     login,

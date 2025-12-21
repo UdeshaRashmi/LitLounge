@@ -2,16 +2,23 @@ import Book from "../models/AddBook.js";
 
 // Create Book
 const addBook = async (req, res) => {
-  const { title, author, description } = req.body;
-
-  const book = await Book.create({
-    title,
-    author,
-    description,
-    user: req.user._id,
-  });
-
-  res.status(201).json(book);
+  try {
+    const { title, author, description, year, photo } = req.body;
+    if (!title || !author) {
+      return res.status(400).json({ message: 'Title and author are required' });
+    }
+    const book = await Book.create({
+      title,
+      author,
+      description,
+      year,
+      photo,
+      user: req.user._id,
+    });
+    return res.status(201).json(book);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 // Get All Books

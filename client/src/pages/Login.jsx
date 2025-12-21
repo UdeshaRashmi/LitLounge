@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Mail, Lock, AlertCircle, LogIn, Shield, KeyRound, Sparkles } from 'lucide-react';
+import { 
+  Eye, EyeOff, Mail, Lock, AlertCircle, 
+  Sparkles, LogIn, KeyRound, Loader2,
+  CheckCircle2, XCircle, Shield
+} from 'lucide-react';
 
+// Floating particles component
 function FloatingParticles() {
-  const particles = Array.from({ length: 20 }, (_, i) => ({
+  const particles = Array.from({ length: 25 }, (_, i) => ({
     id: i,
-    size: Math.random() * 4 + 1,
+    size: Math.random() * 5 + 2,
     left: Math.random() * 100,
-    delay: Math.random() * 3,
-    duration: Math.random() * 8 + 12,
-    color: `rgba(245, 158, 11, ${Math.random() * 0.2 + 0.1})` // Amber particles
+    delay: Math.random() * 5,
+    duration: Math.random() * 10 + 15,
+    color: `rgba(${245 + Math.random() * 10 - 5}, ${158 + Math.random() * 20 - 10}, ${11 + Math.random() * 20 - 10}, 0.2)`
   }));
 
   return (
@@ -25,15 +30,19 @@ function FloatingParticles() {
             left: `${particle.left}%`,
             background: particle.color,
             animation: `float ${particle.duration}s ease-in-out infinite`,
-            animationDelay: `${particle.delay}s`
+            animationDelay: `${particle.delay}s`,
+            filter: 'blur(1px)'
           }}
         />
       ))}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/5 to-orange-400/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-l from-yellow-400/5 to-red-400/5 rounded-full blur-3xl" />
       <style>{`
         @keyframes float {
-          0%, 100% { transform: translateY(100vh) translateX(0); opacity: 0; }
-          10%, 90% { opacity: 0.3; }
-          50% { transform: translateY(-20vh) translateX(${Math.random() * 100 - 50}px); }
+          0%, 100% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.3; }
+          90% { opacity: 0.3; }
+          50% { transform: translateY(-30vh) translateX(${Math.random() * 200 - 100}px) rotate(${Math.random() * 180}deg); }
         }
       `}</style>
     </div>
@@ -41,34 +50,115 @@ function FloatingParticles() {
 }
 
 export default function EnhancedLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginStatus, setLoginStatus] = useState(null); // 'success', 'error', null
+  const [statusMessage, setStatusMessage] = useState('');
+  
+  const { login, loading, error: authError, clearError } = useAuth();
   const navigate = useNavigate();
-  const { login, loading, error, clearError } = useAuth();
+
+  // Clear auth errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, []);
+
+  // Load saved email if remember me was checked
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear errors when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    if (authError || loginStatus === 'error') {
+      setLoginStatus(null);
+      setStatusMessage('');
+      clearError();
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    clearError();
     
-    if (!email || !password) {
+    if (!validateForm()) {
       return;
     }
-
-    const result = await login(email, password);
+    
+    // Save email if remember me is checked
+    if (rememberMe) {
+      localStorage.setItem('rememberedEmail', formData.email);
+    } else {
+      localStorage.removeItem('rememberedEmail');
+    }
+    
+    // Attempt login
+    const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      // Success animation
-      const submitButton = e.target.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.classList.add('bg-green-600');
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+      setLoginStatus('success');
+      setStatusMessage('Login successful! Redirecting...');
       
-      // Navigate to profile
-      navigate('/profile');
+      // Success animation and redirect
+      setTimeout(() => {
+        navigate('/dashboard'); // Change to your desired redirect path
+      }, 1500);
+    } else {
+      setLoginStatus('error');
+      setStatusMessage(result.error || 'Login failed. Please try again.');
+      
+      // Auto-clear error after 5 seconds
+      setTimeout(() => {
+        setLoginStatus(null);
+        setStatusMessage('');
+      }, 5000);
     }
+  };
+
+  const handleDemoLogin = async () => {
+    // Demo credentials (you can remove this in production)
+    setFormData({
+      email: 'demo@example.com',
+      password: 'demo123'
+    });
+    
+    setTimeout(() => {
+      handleSubmit(new Event('submit'));
+    }, 500);
   };
 
   const handleKeyPress = (e) => {
@@ -83,96 +173,162 @@ export default function EnhancedLogin() {
       
       <div className="relative z-10 max-w-md w-full">
         {/* Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-700 rounded-2xl mb-4 shadow-lg shadow-amber-500/30">
-            <LogIn className="w-8 h-8 text-white" />
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute -top-2 -right-2">
+                <Sparkles className="w-6 h-6 text-yellow-400 animate-spin" />
+              </div>
+            </div>
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-amber-200/80">Sign in to your account</p>
+          <p className="text-gray-300">Sign in to your LitLounge account</p>
         </div>
 
-        {/* Login form */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 animate-slide-up">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="animate-shake bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl flex items-center">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                {error}
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-amber-100 mb-2">Email</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-amber-400/70" />
+        {/* Login Card */}
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8">
+          {/* Status Messages */}
+          {loginStatus === 'success' && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl animate-slide-up">
+              <div className="flex items-center gap-3 text-green-400">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Success!</p>
+                  <p className="text-sm text-green-300">{statusMessage}</p>
                 </div>
+              </div>
+            </div>
+          )}
+          
+          {loginStatus === 'error' && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-red-500/30 rounded-xl animate-slide-up">
+              <div className="flex items-center gap-3 text-red-400">
+                <XCircle className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Login Failed</p>
+                  <p className="text-sm text-red-300">{statusMessage}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Auth Context Error */}
+          {authError && !loginStatus && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-red-500/30 rounded-xl">
+              <div className="flex items-center gap-3 text-red-400">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Error</p>
+                  <p className="text-sm text-red-300">{authError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            {/* Email Field */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-white mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) clearError();
-                  }}
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  required
-                  className="pl-10 w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent transition-all duration-300"
-                  placeholder="Enter your email"
+                  className={`w-full pl-12 pr-4 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/5 backdrop-blur-sm text-white placeholder-gray-400 ${
+                    errors.email 
+                      ? 'border-red-500 focus:ring-red-500/30' 
+                      : 'border-white/10 focus:border-amber-500 focus:ring-amber-500/30'
+                  }`}
+                  placeholder="you@example.com"
                   disabled={loading}
                 />
               </div>
+              {errors.email && (
+                <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.email}</span>
+                </div>
+              )}
             </div>
 
             {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-amber-100 mb-2">Password</label>
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-white">
+                  Password
+                </label>
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-amber-400 hover:text-amber-300 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-amber-400/70" />
-                </div>
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) clearError();
-                  }}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  required
-                  className="pl-10 pr-10 w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent transition-all duration-300"
-                  placeholder="Enter your password"
+                  className={`w-full pl-12 pr-12 py-3.5 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all bg-white/5 backdrop-blur-sm text-white placeholder-gray-400 ${
+                    errors.password 
+                      ? 'border-red-500 focus:ring-red-500/30' 
+                      : 'border-white/10 focus:border-amber-500 focus:ring-amber-500/30'
+                  }`}
+                  placeholder="••••••••"
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-amber-400/70 hover:text-amber-300 transition-colors"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   disabled={loading}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {errors.password && (
+                <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.password}</span>
+                </div>
+              )}
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
+            {/* Remember Me & Options */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
+                  id="rememberMe"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-white/20 bg-white/5 focus:ring-amber-500 focus:ring-offset-0"
+                  className="w-5 h-5 rounded border-white/20 bg-white/5 focus:ring-amber-500 focus:ring-offset-0 focus:ring-offset-transparent"
                   disabled={loading}
                 />
-                <span className="text-sm text-amber-100">Remember me</span>
-              </label>
+                <label htmlFor="rememberMe" className="text-sm text-gray-300">
+                  Remember me
+                </label>
+              </div>
+              
               <button
                 type="button"
-                className="text-sm text-amber-400 hover:text-amber-300 transition-colors"
+                onClick={handleDemoLogin}
+                className="text-sm text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1"
                 disabled={loading}
               >
-                Forgot password?
+                <KeyRound className="w-4 h-4" />
+                Try demo account
               </button>
             </div>
 
@@ -180,99 +336,77 @@ export default function EnhancedLogin() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
-                loading
-                  ? 'bg-amber-700 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600'
-              } text-white shadow-lg hover:shadow-xl hover:shadow-amber-500/30 flex items-center justify-center`}
+              className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl font-bold hover:from-amber-700 hover:to-orange-700 transform hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 group"
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                <>
+                  Sign In
+                  <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </button>
+
+            {/* Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-gradient-to-br from-white/10 to-white/5 text-gray-400">
+                  New to LitLounge?
+                </span>
+              </div>
+            </div>
+
+            {/* Register Link */}
+            <Link
+              to="/register"
+              className="w-full block py-3.5 border-2 border-white/20 text-white rounded-xl font-semibold hover:bg-white/10 hover:border-white/30 transition-all text-center"
+            >
+              Create an account
+            </Link>
           </form>
+        </div>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-transparent text-gray-400">Or continue with</span>
-            </div>
-          </div>
-
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 px-4 py-3 border border-white/10 rounded-xl text-white hover:bg-white/5 transition-colors"
-              disabled={loading}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Google
+        {/* Footer */}
+        <div className="mt-8 text-center space-y-4">
+          <p className="text-gray-400 text-sm">
+            By signing in, you agree to our{' '}
+            <button className="text-amber-400 hover:text-amber-300 transition-colors">
+              Terms of Service
             </button>
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 px-4 py-3 border border-white/10 rounded-xl text-white hover:bg-white/5 transition-colors"
-              disabled={loading}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-              GitHub
+            {' '}and{' '}
+            <button className="text-amber-400 hover:text-amber-300 transition-colors">
+              Privacy Policy
             </button>
-          </div>
-
-          {/* Register Link */}
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <p className="text-center text-amber-200/80 text-sm">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-amber-400 font-semibold hover:text-amber-300 transition-colors inline-flex items-center gap-1"
-              >
-                Sign up
-                <Sparkles className="w-4 h-4" />
-              </Link>
-            </p>
+          </p>
+          
+          <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+            <span>Secure connection • Encrypted login</span>
           </div>
         </div>
       </div>
 
       {/* Add CSS animations */}
       <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
         @keyframes slide-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-          20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-slide-up {
-          animation: slide-up 0.6s ease-out;
-        }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
+          animation: slide-up 0.3s ease-out;
         }
       `}</style>
     </div>

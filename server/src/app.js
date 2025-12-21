@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -11,10 +12,21 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(express.json());
+// Enable CORS for local development (allow client dev server)
+app.use(cors({ origin: true, credentials: true }));
+// Increase body size limits to allow base64 images in JSON payloads (e.g., book cover previews)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
+
+// Development-only debug route to inspect incoming headers
+if (process.env.NODE_ENV !== "production") {
+  app.get("/debug/headers", (req, res) => {
+    res.json(req.headers);
+  });
+}
 
 app.get("/api", (req, res) => {
   res.send("LitLounge API is running...");

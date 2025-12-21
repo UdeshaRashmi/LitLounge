@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, X, BookOpen, Sparkles, Image, AlertCircle } from 'lucide-react';
 import { capitalizeWords } from '../../utils/validation';
+import { authFetch } from '../../utils/api';
 
 // Floating particles component
 function FloatingParticles() {
@@ -66,8 +67,15 @@ export default function AddBook() {
 
   // Load books from memory
   useEffect(() => {
-    // In a real app with routing, this would load from your data layer
-    // For demo purposes, we're using component state
+    // load books from backend
+    let mounted = true;
+    (async () => {
+      const res = await authFetch('http://localhost:5000/api/books');
+      if (mounted && res.ok) {
+        setBooks(res.data || []);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   function handleChange(e) {
@@ -154,35 +162,49 @@ export default function AddBook() {
     setLoading(true);
     
     const payload = { 
-      id: isEdit ? currentBookId : Date.now().toString(),
-      title: form.title.trim(), 
-      author: form.author.trim(), 
-      year: form.year, 
-      summary: form.summary.trim(),
+      title: form.title.trim(),
+      author: form.author.trim(),
+      year: form.year,
+      description: form.summary.trim(),
       photo: form.photoPreview
     };
-
-    setTimeout(() => {
-      let updatedBooks;
-      if (isEdit) {
-        updatedBooks = books.map(book => 
-          book.id === currentBookId ? payload : book
-        );
-      } else {
-        updatedBooks = [...books, payload];
+    (async () => {
+      try {
+        if (isEdit && currentBookId) {
+          const res = await authFetch(`http://localhost:5000/api/books/${currentBookId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            setBooks(books.map(b => (b._id === currentBookId ? res.data : b)));
+            alert('Book updated successfully!');
+          } else {
+            alert(res.data?.message || 'Failed to update book');
+          }
+        } else {
+          const res = await authFetch('http://localhost:5000/api/books', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            setBooks(prev => [...prev, res.data]);
+            alert('Book added successfully!');
+          } else {
+            alert(res.data?.message || 'Failed to add book');
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred');
+      } finally {
+        // Reset form
+        setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
+        setErrors({});
+        setIsEdit(false);
+        setCurrentBookId(null);
+        setLoading(false);
       }
-      
-      setBooks(updatedBooks);
-      
-      // Reset form
-      setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
-      setErrors({});
-      setIsEdit(false);
-      setCurrentBookId(null);
-      setLoading(false);
-      
-      alert(isEdit ? 'Book updated successfully!' : 'Book added successfully!');
-    }, 1000);
+    })();
   }
 
   function handleEdit(book) {
@@ -200,16 +222,25 @@ export default function AddBook() {
   }
 
   function handleDelete(bookId) {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      const updatedBooks = books.filter(book => book.id !== bookId);
-      setBooks(updatedBooks);
-      
-      if (currentBookId === bookId) {
-        setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
-        setIsEdit(false);
-        setCurrentBookId(null);
+    if (!window.confirm('Are you sure you want to delete this book?')) return;
+    (async () => {
+      try {
+        const res = await authFetch(`http://localhost:5000/api/books/${bookId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setBooks(books.filter(b => b._id !== bookId));
+          if (currentBookId === bookId) {
+            setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
+            setIsEdit(false);
+            setCurrentBookId(null);
+          }
+        } else {
+          alert(res.data?.message || 'Failed to delete book');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred deleting the book');
       }
-    }
+    })();
   }
 
   function cancelEdit() {

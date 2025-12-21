@@ -300,6 +300,7 @@ export default function EnhancedRegister() {
                 const result = await register({
                   name: capitalizeWords(formData.name || ''),
                   email: formData.email,
+                  password: formData.password,
                   photoPreview: formData.photoPreview,
                   country: formData.country,
                   phone: formData.phone,
