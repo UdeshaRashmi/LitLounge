@@ -14,8 +14,43 @@ import DocumentTextIcon from '@mui/icons-material/DescriptionOutlined';
 import DocumentTextIconSolid from '@mui/icons-material/Description';
 import BookmarkIcon from '@mui/icons-material/BookmarkBorder';
 import { getBooks, getReadingList, subscribeReadingList, subscribeBooks } from '../data/books';
+import { authFetch } from '../utils/api';
 
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+
+function UserProfile() {
+  const { user, isAuthenticated } = useAuth();
+
+  const displayName = (user && (user.name || user.email)) || 'Guest';
+  const subtitle = (user && user.email) ? user.email : 'Book Lover';
+  const photo = user && user.photo;
+
+  const getInitials = (name) => {
+    if (!name) return 'G';
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
+  return (
+    <div className="mt-6 p-3 bg-gradient-to-r from-gray-50 to-indigo-50 rounded-xl">
+      <div className="flex items-center space-x-3">
+        <div className="h-10 w-10 rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500">
+          {photo ? (
+            <img src={photo} alt={displayName} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-white font-semibold">{getInitials(displayName)}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+          <p className="text-xs text-gray-500 truncate">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const Sidebar = () => {
   const { theme } = useTheme();
@@ -23,8 +58,9 @@ const Sidebar = () => {
   const [activeHover, setActiveHover] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
-  const [booksCount, setBooksCount] = useState(getBooks().length);
+  const [booksCount, setBooksCount] = useState(0);
   const [readingCount, setReadingCount] = useState(getReadingList().length);
+  const { token } = useAuth();
   const location = useLocation();
   const params = useParams();
 
@@ -49,15 +85,40 @@ const Sidebar = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // subscribe to book/reading list changes so badges update reactively
+  // fetch real counts from backend and subscribe to local changes
   useEffect(() => {
-    const unsubBooks = subscribeBooks((list) => setBooksCount(list.length));
+    let mounted = true;
+
+    const fetchCounts = async () => {
+      try {
+        const res = await authFetch('http://localhost:5000/api/books');
+        if (!mounted) return;
+        if (res && res.ok && Array.isArray(res.data)) {
+          setBooksCount(res.data.length);
+        } else {
+          // fallback to local list length when backend not available
+          setBooksCount(getBooks().length);
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setBooksCount(getBooks().length);
+      }
+    };
+
+    fetchCounts();
+
+    const unsubBooks = subscribeBooks(() => {
+      // when local mutates, refresh count from backend to stay accurate
+      fetchCounts();
+    });
     const unsubReading = subscribeReadingList((list) => setReadingCount(list.length));
+
     return () => {
+      mounted = false;
       unsubBooks && unsubBooks();
       unsubReading && unsubReading();
     };
-  }, []);
+  }, [token]);
 
   const navigationLinks = [
     {
@@ -326,21 +387,7 @@ const Sidebar = () => {
           </div>
 
           {/* User Profile */}
-          {!collapsed && (
-            <div className="mt-6 p-3 bg-gradient-to-r from-gray-50 to-indigo-50 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">JS</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    John Smith
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">Book Lover</p>
-                </div>
-              </div>
-            </div>
-          )}
+          {!collapsed && <UserProfile />}
         </div>
       </aside>
 

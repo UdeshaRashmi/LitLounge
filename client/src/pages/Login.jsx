@@ -133,10 +133,10 @@ export default function EnhancedLogin() {
       setLoginStatus('success');
       setStatusMessage('Login successful! Redirecting...');
       
-      // Success animation and redirect
+      // Success animation and redirect to Book List
       setTimeout(() => {
-        navigate('/dashboard'); // Change to your desired redirect path
-      }, 1500);
+        navigate('/books');
+      }, 800);
     } else {
       setLoginStatus('error');
       setStatusMessage(result.error || 'Login failed. Please try again.');

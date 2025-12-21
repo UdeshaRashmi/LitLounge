@@ -100,8 +100,18 @@ function BookCard({ book, isInReadingList, onToggleReading }) {
         <div className="flex-1">
           {/* Book icon and title */}
           <div className="flex items-start gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl">
-              <BookOpen className="w-6 h-6 text-indigo-600" />
+            <div className="p-0 bg-transparent rounded-xl w-16 h-16 flex-shrink-0 overflow-hidden">
+              {book.photo || book.cover || book.image ? (
+                <img
+                  src={book.photo || book.cover || book.image}
+                  alt={book.title}
+                  className="w-16 h-16 object-cover rounded-lg border border-white/20"
+                />
+              ) : (
+                <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl w-16 h-16 flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-indigo-600" />
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-bold text-gray-800 truncate mb-1">{book.title}</h2>
@@ -148,7 +158,7 @@ function BookCard({ book, isInReadingList, onToggleReading }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link
-                to={`/books/${book.id}`}
+                to={`/books/${book._id || book.id}`}
                 className="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700 group"
               >
                 View Details
@@ -156,7 +166,7 @@ function BookCard({ book, isInReadingList, onToggleReading }) {
               </Link>
 
               <Link
-                to={`/books/${book.id}/edit`}
+                to={`/books/${book._id || book.id}/edit`}
                 className="text-gray-600 hover:text-indigo-600 transition-colors"
                 title="Edit Book"
               >
@@ -167,7 +177,7 @@ function BookCard({ book, isInReadingList, onToggleReading }) {
             </div>
 
             <button
-              onClick={() => onToggleReading(book.id)}
+              onClick={() => onToggleReading(book._id || book.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all ${
                 isInReadingList
                   ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:shadow-xl'
@@ -209,7 +219,10 @@ export default function BookList() {
     let mounted = true;
     (async () => {
       const res = await authFetch('http://localhost:5000/api/books');
-      if (mounted && res.ok) setBooks(res.data || []);
+      if (mounted && res.ok) {
+        const normalized = (res.data || []).map(b => ({ ...b, id: b._id || b.id }));
+        setBooks(normalized);
+      }
     })();
     return () => { mounted = false; };
   }, []);
@@ -231,8 +244,9 @@ export default function BookList() {
     const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          book.author.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (filter === 'reading') return matchesSearch && readingIds.includes(book.id);
-    if (filter === 'available') return matchesSearch && !readingIds.includes(book.id);
+    const bookKey = book._id || book.id;
+    if (filter === 'reading') return matchesSearch && readingIds.includes(bookKey);
+    if (filter === 'available') return matchesSearch && !readingIds.includes(bookKey);
     return matchesSearch;
   });
 
@@ -378,9 +392,9 @@ export default function BookList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBooks.map((book) => (
               <BookCard
-                key={book.id}
+                key={book._id || book.id}
                 book={book}
-                isInReadingList={readingIds.includes(book.id)}
+                isInReadingList={readingIds.includes(book._id || book.id)}
                 onToggleReading={toggleReading}
               />
             ))}

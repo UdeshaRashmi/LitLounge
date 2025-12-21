@@ -55,6 +55,7 @@ export default function AddBook() {
     author: '', 
     year: '', 
     summary: '',
+    shortSummary: '',
     photo: null,
     photoPreview: null
   });
@@ -65,14 +66,17 @@ export default function AddBook() {
   const [currentBookId, setCurrentBookId] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Load books from memory
   useEffect(() => {
-    // load books from backend
     let mounted = true;
     (async () => {
-      const res = await authFetch('http://localhost:5000/api/books');
-      if (mounted && res.ok) {
-        setBooks(res.data || []);
+      try {
+        const res = await authFetch('http://localhost:5000/api/books');
+        if (mounted && res.ok) {
+          const normalized = (res.data || []).map(b => ({ ...b, id: b._id || b.id }));
+          setBooks(normalized);
+        }
+      } catch (e) {
+        console.error('Failed loading books', e);
       }
     })();
     return () => { mounted = false; };
@@ -102,6 +106,7 @@ export default function AddBook() {
       else if (yearNum > currentYear) newErrors.year = 'Publication year cannot be in the future';
     }
     if (form.summary && form.summary.length > 2000) newErrors.summary = 'Summary must be under 2000 characters';
+    if (form.shortSummary && form.shortSummary.length > 400) newErrors.shortSummary = 'Short summary must be under 400 characters';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -109,9 +114,7 @@ export default function AddBook() {
 
   function handlePhotoChange(e) {
     const file = e.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
+    if (file) processFile(file);
   }
 
   function processFile(file) {
@@ -142,69 +145,72 @@ export default function AddBook() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
-    }
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
   }
 
   function removePhoto() {
-    setForm(f => ({
-      ...f,
-      photo: null,
-      photoPreview: null
-    }));
+    setForm(f => ({ ...f, photo: null, photoPreview: null }));
   }
 
-  function handleSubmit(e) {
+  function generateShortSummary() {
+    const source = form.summary || '';
+    const trimmed = source.trim();
+    if (!trimmed) return;
+    const max = 140;
+    const s = trimmed.length > max ? trimmed.slice(0, max).trimEnd() + '…' : trimmed;
+    setForm(f => ({ ...f, shortSummary: s }));
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
-    
-    const payload = { 
+
+    const payload = {
       title: form.title.trim(),
       author: form.author.trim(),
       year: form.year,
       description: form.summary.trim(),
+      summary: (form.shortSummary && form.shortSummary.trim()) || (form.summary.trim().slice(0, 140)),
       photo: form.photoPreview
     };
-    (async () => {
-      try {
-        if (isEdit && currentBookId) {
-          const res = await authFetch(`http://localhost:5000/api/books/${currentBookId}`, {
-            method: 'PUT',
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            setBooks(books.map(b => (b._id === currentBookId ? res.data : b)));
-            alert('Book updated successfully!');
-          } else {
-            alert(res.data?.message || 'Failed to update book');
-          }
+
+    try {
+      if (isEdit && currentBookId) {
+        const res = await authFetch(`http://localhost:5000/api/books/${currentBookId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const updated = { ...res.data, id: res.data._id || res.data.id };
+          setBooks(books.map(b => (b.id === currentBookId ? updated : b)));
+          alert('Book updated successfully!');
         } else {
-          const res = await authFetch('http://localhost:5000/api/books', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            setBooks(prev => [...prev, res.data]);
-            alert('Book added successfully!');
-          } else {
-            alert(res.data?.message || 'Failed to add book');
-          }
+          alert(res.data?.message || 'Failed to update book');
         }
-      } catch (err) {
-        console.error(err);
-        alert('An error occurred');
-      } finally {
-        // Reset form
-        setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
-        setErrors({});
-        setIsEdit(false);
-        setCurrentBookId(null);
-        setLoading(false);
+      } else {
+        const res = await authFetch('http://localhost:5000/api/books', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const created = { ...res.data, id: res.data._id || res.data.id };
+          setBooks(prev => [...prev, created]);
+          alert('Book added successfully!');
+        } else {
+          alert(res.data?.message || 'Failed to add book');
+        }
       }
-    })();
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    } finally {
+      setForm({ title: '', author: '', year: '', summary: '', shortSummary: '', photo: null, photoPreview: null });
+      setErrors({});
+      setIsEdit(false);
+      setCurrentBookId(null);
+      setLoading(false);
+    }
   }
 
   function handleEdit(book) {
@@ -212,39 +218,40 @@ export default function AddBook() {
       title: book.title,
       author: book.author,
       year: book.year,
-      summary: book.summary,
+      summary: book.description || book.summary || '',
+      shortSummary: book.summary || (book.description ? String(book.description).slice(0, 140) : ''),
       photo: book.photo ? 'existing' : null,
       photoPreview: book.photo
     });
     setIsEdit(true);
-    setCurrentBookId(book.id);
+    setCurrentBookId(book.id || book._id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function handleDelete(bookId) {
+  async function handleDelete(bookId) {
     if (!window.confirm('Are you sure you want to delete this book?')) return;
-    (async () => {
-      try {
-        const res = await authFetch(`http://localhost:5000/api/books/${bookId}`, { method: 'DELETE' });
-        if (res.ok) {
-          setBooks(books.filter(b => b._id !== bookId));
-          if (currentBookId === bookId) {
-            setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
-            setIsEdit(false);
-            setCurrentBookId(null);
-          }
-        } else {
-          alert(res.data?.message || 'Failed to delete book');
+    try {
+      console.debug('Deleting book, id=', bookId);
+      const res = await authFetch(`http://localhost:5000/api/books/${bookId}`, { method: 'DELETE' });
+      console.debug('Delete response', res);
+      if (res.ok) {
+        setBooks(books.filter(b => b.id !== bookId));
+        if (currentBookId === bookId) {
+          setForm({ title: '', author: '', year: '', summary: '', shortSummary: '', photo: null, photoPreview: null });
+          setIsEdit(false);
+          setCurrentBookId(null);
         }
-      } catch (err) {
-        console.error(err);
-        alert('An error occurred deleting the book');
+      } else {
+        alert(res.data?.message || 'Failed to delete book');
       }
-    })();
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred deleting the book');
+    }
   }
 
   function cancelEdit() {
-    setForm({ title: '', author: '', year: '', summary: '', photo: null, photoPreview: null });
+    setForm({ title: '', author: '', year: '', summary: '', shortSummary: '', photo: null, photoPreview: null });
     setIsEdit(false);
     setCurrentBookId(null);
   }
@@ -412,7 +419,7 @@ export default function AddBook() {
                 onChange={handleChange}
                 rows={4}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-y"
-                placeholder="Brief description of the book..."
+                placeholder="Detailed description of the book (used on details page)..."
                 disabled={loading}
               />
               {errors.summary && (
@@ -421,6 +428,28 @@ export default function AddBook() {
                   <span>{errors.summary}</span>
                 </div>
               )}
+              {/* Short summary for list view */}
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">Short summary (for list)</label>
+                  <button type="button" onClick={generateShortSummary} className="text-sm text-indigo-600 hover:underline">Auto-generate</button>
+                </div>
+                <input
+                  name="shortSummary"
+                  value={form.shortSummary}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="A concise one-line summary for list views..."
+                  maxLength={400}
+                  disabled={loading}
+                />
+                {errors.shortSummary && (
+                  <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.shortSummary}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Action Buttons */}

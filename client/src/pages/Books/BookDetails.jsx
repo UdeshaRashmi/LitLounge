@@ -97,7 +97,9 @@ export default function BookDetails() {
   const confirmDelete = () => {
     (async () => {
       try {
+        console.debug('Confirm delete id=', id);
         const res = await (await import('../../utils/api')).authFetch(`http://localhost:5000/api/books/${id}`, { method: 'DELETE' });
+        console.debug('BookDetails delete response', res);
         if (res.ok) {
           setDeleted(true);
           setTimeout(() => navigate('/books'), 500);
